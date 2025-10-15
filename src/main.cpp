@@ -16,6 +16,11 @@ extern "C" {
     char** logos_core_get_known_plugins();
     int logos_core_load_plugin(const char* plugin_name);
     char* logos_core_process_plugin(const char* plugin_path);
+    
+    // Callback type for async operations
+    typedef void (*AsyncCallback)(int result, const char* message, void* user_data);
+    // TODO: just for testing purposes, to avoid using the cpp-sdk here for now
+    void logos_core_call_plugin_method_async(const char* plugin_name, const char* method_name, const char* params_json, AsyncCallback callback, void* user_data);
 }
 
 // Helper function to convert C-style array to QStringList
@@ -27,6 +32,17 @@ QStringList convertPluginsToStringList(char** plugins) {
         }
     }
     return result;
+}
+
+// Callback function for async plugin method calls
+void getPackagesCallback(int result, const char* message, void* user_data) {
+    std::cout << "\n=== getPackages() Response ===" << std::endl;
+    if (result) {
+        std::cout << "✓ Success: " << message << std::endl;
+    } else {
+        std::cout << "✗ Error: " << message << std::endl;
+    }
+    std::cout << "=================================" << std::endl;
 }
 
 int main(int argc, char *argv[])
@@ -132,6 +148,28 @@ int main(int argc, char *argv[])
         foreach (const QString &plugin, loadedList) {
             std::cout << "  - " << plugin.toStdString() << std::endl;
         }
+    }
+    
+    // Call getPackages() on the package_manager plugin if it's loaded
+    if (loadedList.contains("package_manager")) {
+        std::cout << "\n=== Calling getPackages() on package_manager ===" << std::endl;
+        std::cout << "Sending async request to package_manager.getPackages()..." << std::endl;
+        
+        // =========================================================================
+        // TODO: just for testing purposes, to avoid using the cpp-sdk here for now
+        // =========================================================================
+        // Call getPackages() method asynchronously (no parameters needed)
+        logos_core_call_plugin_method_async(
+            "package_manager",           // plugin name
+            "getPackages",              // method name
+            "[]",                       // empty JSON array for no parameters
+            getPackagesCallback,        // callback function
+            nullptr                     // user data (not needed)
+        );
+        
+        std::cout << "Async request sent. Waiting for response..." << std::endl;
+    } else {
+        std::cout << "\n⚠️  package_manager plugin not loaded, skipping getPackages() call" << std::endl;
     }
     
     std::cout << "\n=== Running Event Loop ===" << std::endl;
