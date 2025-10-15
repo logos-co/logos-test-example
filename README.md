@@ -6,28 +6,19 @@
 nix --extra-experimental-features "nix-command flakes" build .
 ```
 
-This will build the default package which ensures these components are fetched and compiled via their own flakes:
-- logos-liblogos
-- logos-package-manager
-- logos-capability-module
-
-You can also build individual packages directly:
-
-```bash
-nix --extra-experimental-features "nix-command flakes" build .#liblogos
-nix --extra-experimental-features "nix-command flakes" build .#package-manager
-nix --extra-experimental-features "nix-command flakes" build .#capability-module
-```
-
 ## Enter a development shell
 
 ```bash
 nix --extra-experimental-features "nix-command flakes" develop
 ```
 
-The shell exports:
-- `LOGOS_LIBLOGOS_ROOT`
-- `LOGOS_PACKAGE_MANAGER_ROOT`
-- `LOGOS_CAPABILITY_MODULE_ROOT`
+The flake provides a custom `logos-test-example` binary that properly configures the plugins directory:
 
-pointing to the built outputs for convenience.
+```bash
+# Run with default module path (../modules relative to binary)
+./result/bin/logos-test-example
+
+# Run with custom module path
+./result/bin/logos-test-example --module-path ./result/modules
+
+```
