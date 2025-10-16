@@ -28,18 +28,37 @@
 
           # This is an aggregate runtime layout; avoid stripping to prevent hook errors
           dontStrip = true;
-          dontWrapQtApps = true;
           
           nativeBuildInputs = [ 
             pkgs.cmake 
             pkgs.ninja 
             pkgs.pkg-config
+            pkgs.qt6.wrapQtAppsHook
             pkgs.qt6.wrapQtAppsNoGuiHook
           ];
           
           buildInputs = [ 
             pkgs.qt6.qtbase
+            pkgs.qt6.qtremoteobjects
+            pkgs.zstd
+            pkgs.krb5
             liblogos
+          ];
+
+          qtLibPath = pkgs.lib.makeLibraryPath [
+            pkgs.qt6.qtbase
+            pkgs.qt6.qtremoteobjects
+            pkgs.zstd
+            pkgs.krb5
+            pkgs.zlib
+            pkgs.glib
+            pkgs.stdenv.cc.cc
+          ];
+          qtPluginPath = "${pkgs.qt6.qtbase}/lib/qt-6/plugins";
+
+          qtWrapperArgs = [
+            "--prefix" "LD_LIBRARY_PATH" ":" qtLibPath
+            "--prefix" "QT_PLUGIN_PATH" ":" qtPluginPath
           ];
           
           # Configure and build phase
@@ -125,6 +144,9 @@
             echo " - binaries in $out/bin"
             echo " - core lib in $out/lib"
             echo " - plugins in $out/bin/modules and $out/modules"
+
+            # Ensure the subsequent fixup hooks run without nounset interfering
+            set +u
           '';
           
           meta = with pkgs.lib; {
@@ -149,6 +171,7 @@
           buildInputs = [
             pkgs.qt6.qtbase
             pkgs.qt6.qtremoteobjects
+            pkgs.zstd
             liblogos
             packageManager
             capabilityModule
@@ -158,6 +181,30 @@
             export LOGOS_LIBLOGOS_ROOT="${liblogos}"
             export LOGOS_PACKAGE_MANAGER_ROOT="${packageManager}"
             export LOGOS_CAPABILITY_MODULE_ROOT="${capabilityModule}"
+
+            qt_ld_path="${pkgs.lib.makeLibraryPath [
+              pkgs.qt6.qtbase
+              pkgs.qt6.qtremoteobjects
+              pkgs.zstd
+              pkgs.krb5
+              pkgs.zlib
+              pkgs.glib
+              pkgs.stdenv.cc.cc
+            ]}"
+            prev_ld_library_path="''${LD_LIBRARY_PATH-}"
+            if [ -n "$prev_ld_library_path" ]; then
+              export LD_LIBRARY_PATH="$qt_ld_path:$prev_ld_library_path"
+            else
+              export LD_LIBRARY_PATH="$qt_ld_path"
+            fi
+
+            qt_plugin_path="${pkgs.qt6.qtbase}/lib/qt-6/plugins"
+            prev_qt_plugin_path="''${QT_PLUGIN_PATH-}"
+            if [ -n "$prev_qt_plugin_path" ]; then
+              export QT_PLUGIN_PATH="$qt_plugin_path:$prev_qt_plugin_path"
+            else
+              export QT_PLUGIN_PATH="$qt_plugin_path"
+            fi
             echo "Logos Test Example development environment"
             echo "LOGOS_LIBLOGOS_ROOT: $LOGOS_LIBLOGOS_ROOT"
             echo "LOGOS_PACKAGE_MANAGER_ROOT: $LOGOS_PACKAGE_MANAGER_ROOT"
