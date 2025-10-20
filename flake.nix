@@ -4,7 +4,7 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     logos-liblogos.url = "git+ssh://git@github.com/logos-co/logos-liblogos.git";
-    logos-package-manager.url = "git+ssh://git@github.com/logos-co/logos-package-manager.git";
+    logos-package-manager.url = "path:/Users/iurimatias/Projects/Logos/LogosCore/logos-package-manager";
     logos-capability-module.url = "git+ssh://git@github.com/logos-co/logos-capability-module.git";
   };
 

@@ -174,17 +174,14 @@
         "nixpkgs": "nixpkgs_10"
       },
       "locked": {
-        "lastModified": 1760548864,
-        "narHash": "sha256-NttYJBL0nmV2FapSFSPDrMfCpqHP57XJRsoYpfHygnw=",
-        "ref": "master",
-        "rev": "a1ad26e98fc9725c37030d5c174d46c63a62dc65",
-        "revCount": 5,
-        "type": "git",
-        "url": "ssh://git@github.com/logos-co/logos-package-manager.git"
+        "lastModified": 1760981154,
+        "narHash": "sha256-Y9vsx7+bUB+AvaLy/nLq8ExkvMlvnbxZEo7jusZukGo=",
+        "path": "/Users/iurimatias/Projects/Logos/LogosCore/logos-package-manager",
+        "type": "path"
       },
       "original": {
-        "type": "git",
-        "url": "ssh://git@github.com/logos-co/logos-package-manager.git"
+        "path": "/Users/iurimatias/Projects/Logos/LogosCore/logos-package-manager",
+        "type": "path"
       }
     },
     "nixpkgs": {
