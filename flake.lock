@@ -267,11 +267,11 @@
         "nixpkgs": "nixpkgs_15"
       },
       "locked": {
-        "lastModified": 1761071021,
-        "narHash": "sha256-7YUXJFdkyjGWufg+7fTlJZjGiN4WXp84TNH1yPHasb0=",
+        "lastModified": 1761077344,
+        "narHash": "sha256-MWbJhvKByhQfnzFkZ7aiaQuXKLE+1O4pFQ9pXDZtg4o=",
         "ref": "update_flake",
-        "rev": "fb6dc746d0c8885c3467feedbf252bd7858411c0",
-        "revCount": 12,
+        "rev": "ffa3bd04ef86bd677fed09fc5812bfc8a837f2b0",
+        "revCount": 14,
         "type": "git",
         "url": "ssh://git@github.com/logos-co/logos-waku-module.git"
       },
