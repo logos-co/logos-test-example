@@ -7,24 +7,42 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 # Find Qt packages
-find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Core)
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core)
+find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Core RemoteObjects)
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core RemoteObjects)
 
 # Find logos-liblogos
 if(NOT DEFINED LOGOS_LIBLOGOS_ROOT)
     message(FATAL_ERROR "LOGOS_LIBLOGOS_ROOT must be defined")
 endif()
 
+# Find logos-cpp-sdk
+if(NOT DEFINED LOGOS_CPP_SDK_ROOT)
+    message(FATAL_ERROR "LOGOS_CPP_SDK_ROOT must be defined")
+endif()
+
 message(STATUS "Using logos-liblogos at: ${LOGOS_LIBLOGOS_ROOT}")
+message(STATUS "Using logos-cpp-sdk at: ${LOGOS_CPP_SDK_ROOT}")
+
+# Check if logos_sdk library exists
+if(NOT EXISTS "${LOGOS_CPP_SDK_ROOT}/lib/liblogos_sdk.a" AND NOT EXISTS "${LOGOS_CPP_SDK_ROOT}/lib/liblogos_sdk.dylib" AND NOT EXISTS "${LOGOS_CPP_SDK_ROOT}/lib/liblogos_sdk.so")
+    message(WARNING "logos_sdk library not found in ${LOGOS_CPP_SDK_ROOT}/lib/")
+    message(STATUS "Available files in ${LOGOS_CPP_SDK_ROOT}/lib/:")
+    file(GLOB SDK_LIB_FILES "${LOGOS_CPP_SDK_ROOT}/lib/*")
+    foreach(file ${SDK_LIB_FILES})
+        message(STATUS "  ${file}")
+    endforeach()
+endif()
 
 # Include directories
 include_directories(
     ${LOGOS_LIBLOGOS_ROOT}/include
+    ${LOGOS_CPP_SDK_ROOT}/include
 )
 
 # Link directories
 link_directories(
     ${LOGOS_LIBLOGOS_ROOT}/lib
+    ${LOGOS_CPP_SDK_ROOT}/lib
 )
 
 # Set output directories
@@ -38,7 +56,9 @@ add_executable(logos-test-example
 # Link libraries
 target_link_libraries(logos-test-example PRIVATE
     Qt${QT_VERSION_MAJOR}::Core
+    Qt${QT_VERSION_MAJOR}::RemoteObjects
     logos_core
+    logos_sdk
 )
 
 # Set RPATH settings for the executable

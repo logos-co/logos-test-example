@@ -16,6 +16,10 @@
 #include <chrono>
 #include <thread>
 
+// Include the Logos C++ SDK (only for Waku initialization)
+#include "logos_api.h"
+#include "logos_api_client.h"
+
 // Waku constants
 const std::string TOY_CHAT_CONTENT_TOPIC = "/toy-chat/2/baixa-chiado/proto";
 const std::string DEFAULT_PUBSUB_TOPIC = "/waku/2/rs/16/32";
@@ -53,6 +57,9 @@ extern "C" {
     void logos_core_call_plugin_method_async(const char* plugin_name, const char* method_name, const char* params_json, AsyncCallback callback, void* user_data);
 }
 
+// Global LogosAPI instance (only for Waku initialization)
+LogosAPI* g_logosAPI = nullptr;
+
 // Helper function to convert C-style array to QStringList
 QStringList convertPluginsToStringList(char** plugins) {
     QStringList result;
@@ -82,6 +89,17 @@ void testPluginCallCallback(int result, const char* message, void* user_data) {
         std::cout << "✓ Success: " << message << std::endl;
     } else {
         std::cout << "✗ Error: " << message << std::endl;
+    }
+    std::cout << "=================================" << std::endl;
+}
+
+// Helper function to print QVariant results (for Waku only)
+void printResult(const QString& methodName, const QVariant& result) {
+    std::cout << "\n=== " << methodName.toStdString() << "() Response ===" << std::endl;
+    if (result.isValid()) {
+        std::cout << "✓ Success: " << result.toString().toStdString() << std::endl;
+    } else {
+        std::cout << "✗ Error: Invalid result" << std::endl;
     }
     std::cout << "=================================" << std::endl;
 }
@@ -293,6 +311,10 @@ int main(int argc, char *argv[])
     std::this_thread::sleep_for(std::chrono::seconds(10));
     std::cout << "10 seconds elapsed, proceeding with Waku initialization..." << std::endl;
     
+    // Initialize Logos C++ SDK for Waku initialization only
+    g_logosAPI = new LogosAPI("test_example");
+    std::cout << "Logos C++ SDK initialized for Waku" << std::endl;
+    
     std::string relayTopic = DEFAULT_PUBSUB_TOPIC;
     std::string configStr = R"({
         "host": "0.0.0.0",
@@ -317,22 +339,15 @@ int main(int argc, char *argv[])
     // Try to call initWaku on the waku module if it's available
     std::cout << "Attempting to initialize Waku module..." << std::endl;
     
-    // Call initWaku method on the waku module
-    logos_core_call_plugin_method_async(
-        "waku_module",              // plugin name
-        "initWaku",                 // method name
-        ("[{\"name\":\"config\",\"value\":\"" + configStr + "\",\"type\":\"string\"}]").c_str(),  // JSON array with parameter object
-        [](int result, const char* message, void* user_data) {
-            std::cout << "\n=== initWaku() Response ===" << std::endl;
-            if (result) {
-                std::cout << "✓ Waku initialization successful: " << message << std::endl;
-            } else {
-                std::cout << "✗ Waku initialization failed: " << message << std::endl;
-            }
-            std::cout << "=================================" << std::endl;
-        },
-        nullptr
-    );
+    // Get client for waku_module
+    LogosAPIClient* wakuClient = g_logosAPI->getClient("waku_module");
+    if (wakuClient->isConnected()) {
+        // Call initWaku method on the waku module
+        QVariant wakuResult = wakuClient->invokeRemoteMethod("waku_module", "initWaku", configStr.c_str());
+        printResult("initWaku", wakuResult);
+    } else {
+        std::cout << "✗ Failed to connect to waku_module" << std::endl;
+    }
     
     // Get and display loaded plugins
     char** loadedPlugins = logos_core_get_loaded_plugins();
@@ -394,6 +409,12 @@ int main(int argc, char *argv[])
     // Cleanup
     std::cout << "\nCleaning up..." << std::endl;
     logos_core_cleanup();
+    
+    // Clean up C++ SDK if it was initialized
+    if (g_logosAPI) {
+        delete g_logosAPI;
+        g_logosAPI = nullptr;
+    }
     
     return result;
 }
