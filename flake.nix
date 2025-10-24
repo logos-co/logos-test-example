@@ -103,6 +103,16 @@
               echo "Installed logos-test-example binary"
             fi
             
+            # Copy the core binaries from liblogos
+            if [ -f "${liblogos}/bin/logoscore" ]; then
+              cp -L "${liblogos}/bin/logoscore" "$out/bin/"
+              echo "Installed logoscore binary"
+            fi
+            if [ -f "${liblogos}/bin/logos_host" ]; then
+              cp -L "${liblogos}/bin/logos_host" "$out/bin/"
+              echo "Installed logos_host binary"
+            fi
+            
             # Copy required shared libraries from liblogos
             if ls "${liblogos}/lib/"liblogos_core.* >/dev/null 2>&1; then
               cp -L "${liblogos}/lib/"liblogos_core.* "$out/lib/" || true
