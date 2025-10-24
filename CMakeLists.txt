@@ -33,10 +33,12 @@ if(NOT EXISTS "${LOGOS_CPP_SDK_ROOT}/lib/liblogos_sdk.a" AND NOT EXISTS "${LOGOS
     endforeach()
 endif()
 
-# Include directories
+# Include directories - the new structure has headers in /include with subdirectories
 include_directories(
     ${LOGOS_LIBLOGOS_ROOT}/include
     ${LOGOS_CPP_SDK_ROOT}/include
+    ${LOGOS_CPP_SDK_ROOT}/include/cpp
+    ${LOGOS_CPP_SDK_ROOT}/include/core
 )
 
 # Link directories
