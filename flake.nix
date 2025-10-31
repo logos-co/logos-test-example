@@ -41,6 +41,9 @@
             pkgs.cmake 
             pkgs.ninja 
             pkgs.pkg-config
+            pkgs.makeWrapper
+            pkgs.patchelf
+            pkgs.removeReferencesTo
           ];
           
           buildInputs = [ 
@@ -53,6 +56,20 @@
             packageManager
             capabilityModule
             wakuModule
+          ];
+          
+          # Define runtime library path for all dependencies
+          runtimeLibPath = pkgs.lib.makeLibraryPath [
+            pkgs.qt6.qtbase
+            pkgs.qt6.qtremoteobjects
+            pkgs.zstd
+            pkgs.krb5
+            pkgs.zlib
+            pkgs.glib
+            pkgs.stdenv.cc.cc
+            pkgs.freetype
+            pkgs.fontconfig
+            pkgs.abseil-cpp
           ];
           
           # Configure and build phase
@@ -167,6 +184,42 @@ Usage:
 EOF
             
             runHook postInstall
+          '';
+          
+          # Wrap binaries with runtime library path
+          postFixup = ''
+            runHook preFixup
+            
+            # Wrap the main binary with LD_LIBRARY_PATH
+            if [ -f "$out/bin/logos-test-example" ]; then
+              wrapProgram "$out/bin/logos-test-example" \
+                --prefix LD_LIBRARY_PATH : "${runtimeLibPath}:$out/lib:$out/modules"
+              echo "Wrapped logos-test-example with runtime library path"
+            fi
+            
+            # Wrap logoscore binary
+            if [ -f "$out/bin/logoscore" ]; then
+              wrapProgram "$out/bin/logoscore" \
+                --prefix LD_LIBRARY_PATH : "${runtimeLibPath}:$out/lib:$out/modules"
+              echo "Wrapped logoscore with runtime library path"
+            fi
+            
+            # Wrap logos_host binary
+            if [ -f "$out/bin/logos_host" ]; then
+              wrapProgram "$out/bin/logos_host" \
+                --prefix LD_LIBRARY_PATH : "${runtimeLibPath}:$out/lib:$out/modules"
+              echo "Wrapped logos_host with runtime library path"
+            fi
+            
+            # Clean up RPATH in shared libraries
+            find $out -name "*.so" -exec sh -c '
+              if patchelf --print-rpath "$1" 2>/dev/null | grep -q "/build/"; then
+                echo "Cleaning RPATH for $1"
+                patchelf --remove-rpath "$1" 2>/dev/null || true
+              fi
+            ' _ {} \;
+            
+            runHook postFixup
           '';
           
           meta = with pkgs.lib; {
