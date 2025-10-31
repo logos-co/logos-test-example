@@ -188,8 +188,6 @@ EOF
           
           # Wrap binaries with runtime library path
           postFixup = ''
-            runHook preFixup
-            
             # Wrap the main binary with LD_LIBRARY_PATH
             if [ -f "$out/bin/logos-test-example" ]; then
               wrapProgram "$out/bin/logos-test-example" \
@@ -218,8 +216,6 @@ EOF
                 patchelf --remove-rpath "$1" 2>/dev/null || true
               fi
             ' _ {} \;
-            
-            runHook postFixup
           '';
           
           meta = with pkgs.lib; {
